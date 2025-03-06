@@ -30,10 +30,18 @@ public class PostService {
     }
 
     public Post findById(Long postId) {
-        return postRepository.findById(postId);
+        var post = postRepository.findById(postId);
+        post.setComments(commentRepository.findAllCommentsByPostId(postId));
+        return post;
     }
 
     public int getPostCount(String search) {
         return postRepository.getPostCount(search);
+    }
+
+    public void changePostLikesCount(Long postId, boolean like) {
+        var post = postRepository.findById(postId);
+        post.setLikesCount(like ? post.getLikesCount() + 1 : post.getLikesCount() - 1);
+        postRepository.updatePost(post);
     }
 }

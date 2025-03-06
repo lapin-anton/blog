@@ -60,4 +60,17 @@ public class PostController {
                 .body(new ByteArrayResource(post.getImage()));
     }
 
+    @GetMapping("/{postId}")
+    public String showPost(Model model, @PathVariable("postId") Long postId) {
+        var post = postService.findById(postId);
+        model.addAttribute("post", post);
+        return "post";
+    }
+
+    @PostMapping("/{postId}/like")
+    public String changeRating(@PathVariable("postId") Long postId, @RequestParam("like") boolean like) {
+        postService.changePostLikesCount(postId, like);
+        return "redirect:/" + postId;
+    }
+
 }

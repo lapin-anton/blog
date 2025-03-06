@@ -49,11 +49,12 @@ public class PostRepository {
 
     public void updatePost(Post post) {
         jdbcTemplate.update(con -> {
-            PreparedStatement statement = con.prepareStatement("update post set title = ?, text = ?, tags = ? where id = ?");
+            PreparedStatement statement = con.prepareStatement("update post set title = ?, text = ?, tags = ?, likes_count = ? where id = ?");
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getText());
             statement.setString(3, post.getTagsAsText());
-            statement.setLong(4, post.getId());
+            statement.setInt(4, post.getLikesCount());
+            statement.setLong(5, post.getId());
             return statement;
         });
     }
