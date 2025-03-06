@@ -49,4 +49,13 @@ public class PostService {
         commentRepository.deleteCommentsByPostId(postId);
         postRepository.delete(postId);
     }
+
+    public void updatePost(Long postId, String title, MultipartFile image, String tags, String text) throws IOException {
+        var post = postRepository.findById(postId);
+        post.setTitle(title);
+        post.setImage(image.getBytes());
+        post.setTagsAsText(tags);
+        post.setText(text);
+        postRepository.updatePost(post);
+    }
 }

@@ -79,4 +79,23 @@ public class PostController {
         return "redirect:/";
     }
 
+    @GetMapping("/{postId}/edit")
+    public String editPost(Model model, @PathVariable("postId") Long postId) {
+        var post = postService.findById(postId);
+        model.addAttribute("post", post);
+        return "add-post";
+    }
+
+    @PostMapping("/{postId}")
+    public String updatePost(
+            @PathVariable("postId") Long postId,
+            @RequestParam("title") String title,
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("tags") String tags,
+            @RequestParam("text") String text
+            ) throws IOException {
+        postService.updatePost(postId, title, image, tags, text);
+        return "redirect:/" + postId;
+    }
+
 }
