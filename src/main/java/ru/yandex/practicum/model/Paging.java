@@ -14,7 +14,7 @@ public class Paging {
     public Paging(int postCount, int pageNumber, int pageSize) {
         this.pageSize = pageSize;
         this.pageNumber = pageNumber;
-        this.pageCount = postCount / pageSize + postCount % pageSize > 0 ? 1 : 0;
+        this.pageCount = postCount / pageSize + (postCount % pageSize > 0 ? 1 : 0);
     }
 
     public boolean hasNext() {

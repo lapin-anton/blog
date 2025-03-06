@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -106,9 +107,17 @@ public class PostController {
         return "redirect:/" + postId;
     }
 
+    @PostMapping("/{postId}/comments/{commentId}")
+    public String updateComment(
+            @PathVariable("postId") Long postId,
+            @PathVariable("commentId") Long commentId,
+            @RequestParam("text") String text) {
+        postService.updateComment(commentId, text);
+        return "redirect:/" + postId;
+    }
+
     @PostMapping("/{postId}/comments/{commentId}/delete")
     public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
-        log.info(">>> Delete comment id '{}' from post id '{}'", commentId, postId);
         postService.deleteCommentFromPost(commentId);
         return "redirect:/" + postId;
     }

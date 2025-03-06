@@ -18,6 +18,7 @@ public class Post {
         this.textPreview = text != null && text.length() > 300 ? text.substring(0, 300) + "..." : text;
         this.textParts = text == null ? List.of() : Arrays.stream(text.split("\\n")).toList();
         this.tags = tags == null ? List.of() : Arrays.stream(tags.split("\\s")).toList();
+        this.tagsAsText = tags;
         this.likesCount = likesCount;
     }
 

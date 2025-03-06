@@ -66,4 +66,9 @@ public class PostService {
     public void deleteCommentFromPost(Long commentId) {
         commentRepository.deleteCommentById(commentId);
     }
+
+    public void updateComment(Long commentId, String text) {
+        commentRepository.updateComment(commentId, text);
+    }
+
 }

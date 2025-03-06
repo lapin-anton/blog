@@ -9,55 +9,60 @@
 <form method="GET" action="/blog/add">
     <button style="float:right;">ДОБАВИТЬ ПОСТ</button>
 </form>
-<table style="width:50%;margin-left:auto;margin-right:auto;">
-    <tr>
-        <td>
-            <form>
-                <!--/*@thymesVar id="paging" type="ru.yandex.practicum.model.Paging"*/-->
-                <p>
-                    <label for="search">Найти по тегу: </label>
-                    <input id="search" style="width:300px;" name="search" th:value="${search}">
-                    <button name="action">&#128269;</button>
-                </p>
-                <p>
-                    <label for="pageSize">Число постов: </label>
-                    <select id="pageSize" name="pageSize" onchange="this.form.submit()">
-                        <option value="5" th:selected="${paging.getPageSize()==5}">5</option>
-                        <option value="10" th:selected="${paging.getPageSize()==10}">10</option>
-                        <option value="20" th:selected="${paging.getPageSize()==20}">20</option>
-                        <option value="50" th:selected="${paging.getPageSize()==50}">50</option>
-                        <option value="100" th:selected="${paging.getPageSize()==100}">100</option>
-                    </select>
-                </p>
-                <p>
-                    <button th:if="${paging.hasPrevious()}" name="pageNumber" th:value="${paging.getPageNumber()-1}">
-                        &lt;
-                    </button>
-                    <span th:text="${'Страница: '+paging.getPageNumber()}"></span>
-                    <button th:if="${paging.hasNext()}" name="pageNumber" th:value="${paging.getPageNumber()+1}">&gt;
-                    </button>
-                </p>
-            </form>
-        </td>
-    </tr>
-    <!--/*@thymesVar id="posts" type="ru.yandex.practicum.model.Post"*/-->
-    <tr th:each="post : ${posts}">
-        <td style="border-bottom:thin solid;">
-            <a th:href="@{|/${post.getId()}|}">
-                <h2 th:text="${post.getTitle()}"></h2>
-            </a>
-            <p>
-                <img height="300" th:src="@{|/images/${post.getId()}|}">
-            </p>
-            <p th:text="${post.getTextPreview()}"></p>
-            <p>
-                <span th:text="${'&#x1F44D; '+post.getLikesCount()}"></span>
-                <span th:text="${'&#x2709; '+post.getComments().size()}"></span>
-            </p>
-            <p>
-                <span th:each="tag : ${post.getTags()}" th:text="${'#'+tag+' '}"></span>
-            </p>
-        </td>
-    </tr>
-</table>
+<div style="justify-content: center">
+    <table style="width:50%;margin-left:auto;margin-right:auto;">
+        <tr>
+            <td>
+                <form>
+                    <!--/*@thymesVar id="paging" type="ru.yandex.practicum.model.Paging"*/-->
+                    <p>
+                        <label for="search">Найти по тегу: </label>
+                        <input id="search" style="width:300px;" name="search" th:value="${search}">
+                        <button name="action">&#128269;</button>
+                    </p>
+                    <p>
+                        <label for="pageSize">Число постов: </label>
+                        <select id="pageSize" name="pageSize" onchange="this.form.submit()">
+                            <option value="5" th:selected="${paging.getPageSize()==5}">5</option>
+                            <option value="10" th:selected="${paging.getPageSize()==10}">10</option>
+                            <option value="20" th:selected="${paging.getPageSize()==20}">20</option>
+                            <option value="50" th:selected="${paging.getPageSize()==50}">50</option>
+                            <option value="100" th:selected="${paging.getPageSize()==100}">100</option>
+                        </select>
+                    </p>
+                    <p>
+                        <button th:if="${paging.hasPrevious()}" name="pageNumber" th:value="${paging.getPageNumber()-1}">
+                            &lt;
+                        </button>
+                        <span th:text="${'Страница: '+paging.getPageNumber()}"></span>
+                        <button th:if="${paging.hasNext()}" name="pageNumber" th:value="${paging.getPageNumber()+1}">
+                            &gt;
+                        </button>
+                    </p>
+                </form>
+            </td>
+        </tr>
+        <!--/*@thymesVar id="posts" type="ru.yandex.practicum.model.Post"*/-->
+        <tr th:each="post : ${posts}">
+            <td style="border-bottom:thin solid;">
+                <div style="text-align: center">
+                    <a th:href="@{|/${post.getId()}|}">
+                        <h2 th:text="${post.getTitle()}"></h2>
+                    </a>
+                    <span>
+                        <img height="300" th:src="@{|/images/${post.getId()}|}">
+                    </span>
+                </div>
+                <p th:text="${post.getTextPreview()}"></p>
+                <div style="text-align: right">
+                    <span th:text="${'&#x1F44D; '+post.getLikesCount()}"></span>
+                    <span th:text="${'&#x2709; '+post.getComments().size()}"></span>
+                </div>
+                <div>
+                    <span th:each="tag : ${post.getTags()}" th:text="${'#'+tag+' '}"></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 </body>
