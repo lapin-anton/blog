@@ -8,11 +8,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.model.Paging;
+import ru.yandex.practicum.repository.CommentRepository;
+import ru.yandex.practicum.service.CommentService;
 import ru.yandex.practicum.service.PostService;
 
 import java.io.IOException;
@@ -24,6 +28,8 @@ public class PostController {
 
     private final PostService postService;
 
+    private final CommentService commentService;
+
     @GetMapping("/")
     public String showPosts(Model model,
                             @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
@@ -32,6 +38,7 @@ public class PostController {
         var postCount = postService.getPostCount(search);
         var paging = new Paging(postCount, pageNumber, pageSize);
         var posts = postService.findAllPosts(search, pageNumber, pageSize);
+        posts.forEach(p -> p.setComments(commentService.findAllCommentsByPostId(p.getId())));
         model.addAttribute("posts", posts);
         model.addAttribute("paging", paging);
         model.addAttribute("search", search);
@@ -66,6 +73,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public String showPost(Model model, @PathVariable("postId") Long postId) {
         var post = postService.findById(postId);
+        post.setComments(commentService.findAllCommentsByPostId(postId));
         model.addAttribute("post", post);
         return "post";
     }
@@ -78,6 +86,7 @@ public class PostController {
 
     @PostMapping("/{postId}/delete")
     public String deletePost(@PathVariable("postId") Long postId) {
+        commentService.deleteCommentsByPostId(postId);
         postService.deletePost(postId);
         return "redirect:/";
     }
@@ -103,7 +112,7 @@ public class PostController {
 
     @PostMapping("/{postId}/comments")
     public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
-        postService.addCommentToPost(postId, text);
+        commentService.addCommentToPost(postId, text);
         return "redirect:/" + postId;
     }
 
@@ -112,13 +121,13 @@ public class PostController {
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId,
             @RequestParam("text") String text) {
-        postService.updateComment(commentId, text);
+        commentService.updateComment(commentId, text);
         return "redirect:/" + postId;
     }
 
     @PostMapping("/{postId}/comments/{commentId}/delete")
     public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
-        postService.deleteCommentFromPost(commentId);
+        commentService.deleteCommentFromPost(commentId);
         return "redirect:/" + postId;
     }
 

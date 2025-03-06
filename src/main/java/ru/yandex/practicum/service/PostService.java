@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.model.Post;
-import ru.yandex.practicum.repository.CommentRepository;
 import ru.yandex.practicum.repository.PostRepository;
 
 import java.io.IOException;
@@ -16,23 +15,16 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    private final CommentRepository commentRepository;
-
     public List<Post> findAllPosts(String search, int pageNumber, int pageSize) {
-        var posts = postRepository.findAll(search, pageNumber, pageSize);
-        posts.forEach(p -> p.setComments(commentRepository.findAllCommentsByPostId(p.getId())));
-        return posts;
+        return postRepository.findAll(search, pageNumber, pageSize);
     }
-
 
     public void savePost(String title, MultipartFile image, String tags, String text) throws IOException {
         postRepository.saveNewPost(title, image.getBytes(), tags, text);
     }
 
     public Post findById(Long postId) {
-        var post = postRepository.findById(postId);
-        post.setComments(commentRepository.findAllCommentsByPostId(postId));
-        return post;
+        return postRepository.findById(postId);
     }
 
     public int getPostCount(String search) {
@@ -46,7 +38,6 @@ public class PostService {
     }
 
     public void deletePost(Long postId) {
-        commentRepository.deleteCommentsByPostId(postId);
         postRepository.delete(postId);
     }
 
@@ -57,18 +48,6 @@ public class PostService {
         post.setTagsAsText(tags);
         post.setText(text);
         postRepository.updatePost(post);
-    }
-
-    public void addCommentToPost(Long postId, String text) {
-        commentRepository.addComment(postId, text);
-    }
-
-    public void deleteCommentFromPost(Long commentId) {
-        commentRepository.deleteCommentById(commentId);
-    }
-
-    public void updateComment(Long commentId, String text) {
-        commentRepository.updateComment(commentId, text);
     }
 
 }
