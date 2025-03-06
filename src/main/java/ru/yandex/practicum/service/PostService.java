@@ -62,4 +62,8 @@ public class PostService {
     public void addCommentToPost(Long postId, String text) {
         commentRepository.addComment(postId, text);
     }
+
+    public void deleteCommentFromPost(Long commentId) {
+        commentRepository.deleteCommentById(commentId);
+    }
 }

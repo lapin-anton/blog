@@ -37,4 +37,9 @@ public class CommentRepository {
             return statement;
         });
     }
+
+    public void deleteCommentById(Long commentId) {
+        jdbcTemplate.update("delete from comment where id = ?", commentId);
+    }
+
 }

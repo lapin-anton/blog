@@ -1,6 +1,7 @@
 package ru.yandex.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,7 @@ import ru.yandex.practicum.service.PostService;
 
 import java.io.IOException;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class PostController {
@@ -101,6 +103,13 @@ public class PostController {
     @PostMapping("/{postId}/comments")
     public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
         postService.addCommentToPost(postId, text);
+        return "redirect:/" + postId;
+    }
+
+    @PostMapping("/{postId}/comments/{commentId}/delete")
+    public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
+        log.info(">>> Delete comment id '{}' from post id '{}'", commentId, postId);
+        postService.deleteCommentFromPost(commentId);
         return "redirect:/" + postId;
     }
 
