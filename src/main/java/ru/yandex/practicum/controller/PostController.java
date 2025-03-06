@@ -98,4 +98,10 @@ public class PostController {
         return "redirect:/" + postId;
     }
 
+    @PostMapping("/{postId}/comments")
+    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
+        postService.addCommentToPost(postId, text);
+        return "redirect:/" + postId;
+    }
+
 }

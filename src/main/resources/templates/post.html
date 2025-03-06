@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Витрина товаров</title>
+    <title>Блог</title>
     <script>
         function editComment(id) {
             var comment = document.getElementById("comment" + id);
@@ -103,7 +103,7 @@
         </tr>
         <tr>
             <td>
-                <form id="addCommentForm" th:action="${'/posts/'+post.getId()+'/comments'}" method="post">
+                <form id="addCommentForm" th:action="${'/blog/'+post.getId()+'/comments'}" method="post">
                     <button id="addCommentButton" style="float:right;" onclick="addComment()">Добавить комментарий</button>
                 </form>
             </td>

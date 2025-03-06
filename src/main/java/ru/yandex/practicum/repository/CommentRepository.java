@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.model.Comment;
 
+import java.sql.PreparedStatement;
 import java.util.List;
 
 @Repository
@@ -25,5 +26,15 @@ public class CommentRepository {
 
     public void deleteCommentsByPostId(Long postId) {
         jdbcTemplate.update("delete from comment where post_id = ?", postId);
+    }
+
+    public void addComment(Long postId, String text) {
+        jdbcTemplate.update(con -> {
+            PreparedStatement statement = con.prepareStatement(
+                    "insert into comment (post_id, text) values (?, ?)");
+            statement.setLong(1, postId);
+            statement.setString(2, text);
+            return statement;
+        });
     }
 }

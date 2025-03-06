@@ -58,4 +58,8 @@ public class PostService {
         post.setText(text);
         postRepository.updatePost(post);
     }
+
+    public void addCommentToPost(Long postId, String text) {
+        commentRepository.addComment(postId, text);
+    }
 }
