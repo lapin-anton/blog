@@ -44,4 +44,9 @@ public class PostService {
         post.setLikesCount(like ? post.getLikesCount() + 1 : post.getLikesCount() - 1);
         postRepository.updatePost(post);
     }
+
+    public void deletePost(Long postId) {
+        commentRepository.deleteCommentsByPostId(postId);
+        postRepository.delete(postId);
+    }
 }

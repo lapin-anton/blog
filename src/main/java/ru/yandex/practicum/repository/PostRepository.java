@@ -75,4 +75,8 @@ public class PostRepository {
         var query = "".equals(search) ? "select count(1) as count from post" : "select count(1) as count from post where tags like '%" + search + "%'";
         return jdbcTemplate.queryForObject(query, Integer.class);
     }
+
+    public void delete(Long postId) {
+        jdbcTemplate.update("delete from post where id = ?", postId);
+    }
 }
