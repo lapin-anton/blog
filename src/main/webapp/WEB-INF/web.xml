@@ -18,6 +18,12 @@
             <param-value>ru.yandex.practicum.config.WebConfig</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+
+        <multipart-config>
+            <max-file-size>5242880</max-file-size> <!-- 5 MB -->
+            <max-request-size>20971520</max-request-size> <!-- 20 MB -->
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
     </servlet>
 
     <servlet-mapping>
