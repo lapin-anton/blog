@@ -17,7 +17,7 @@
                     <!--/*@thymesVar id="paging" type="ru.yandex.practicum.model.Paging"*/-->
                     <p>
                         <label for="search">Найти по тегу: </label>
-                        <input id="search" style="width:300px;" name="search" th:value="${search}">
+                        <input id="search" style="width:300px;" name="search" th:value="${search}"></input>
                         <button name="action">&#128269;</button>
                     </p>
                     <p>
@@ -31,7 +31,8 @@
                         </select>
                     </p>
                     <p>
-                        <button th:if="${paging.hasPrevious()}" name="pageNumber" th:value="${paging.getPageNumber()-1}">
+                        <button th:if="${paging.hasPrevious()}" name="pageNumber"
+                                th:value="${paging.getPageNumber()-1}">
                             &lt;
                         </button>
                         <span th:text="${'Страница: '+paging.getPageNumber()}"></span>
@@ -50,7 +51,7 @@
                         <h2 th:text="${post.getTitle()}"></h2>
                     </a>
                     <span>
-                        <img height="300" th:src="@{|/images/${post.getId()}|}">
+                        <img height="300" th:src="@{|/images/${post.getId()}|}"></img>
                     </span>
                 </div>
                 <p th:text="${post.getTextPreview()}"></p>
@@ -66,3 +67,4 @@
     </table>
 </div>
 </body>
+</html>

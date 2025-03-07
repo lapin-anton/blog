@@ -15,13 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.model.Paging;
-import ru.yandex.practicum.repository.CommentRepository;
 import ru.yandex.practicum.service.CommentService;
 import ru.yandex.practicum.service.PostService;
 
 import java.io.IOException;
 
-@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class PostController {
@@ -53,7 +51,7 @@ public class PostController {
     @PostMapping("/savePost")
     public String savePost(
             @RequestParam("title") String title,
-            @RequestParam("image") MultipartFile image,
+            @RequestParam(value = "image") MultipartFile image,
             @RequestParam("tags") String tags,
             @RequestParam("text") String text) throws IOException {
         postService.savePost(title, image, tags, text);
@@ -61,7 +59,7 @@ public class PostController {
     }
 
     @GetMapping("/images/{postId}")
-    public ResponseEntity<Resource> downloadPicture(@PathVariable("postId") Long postId) {
+    public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) {
         var post = postService.findById(postId);
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())

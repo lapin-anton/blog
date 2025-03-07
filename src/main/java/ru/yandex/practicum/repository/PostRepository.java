@@ -18,8 +18,8 @@ public class PostRepository {
 
     public List<Post> findAll(String search, int pageNumber, int pageSize) {
         var offset = pageSize * (pageNumber - 1);
-        var query = "".equals(search) ? "select id, title, image, text, tags, likes_count from post offset ? limit ?"
-                : "select id, title, image, text, tags, likes_count from post where tags like '%" + search + "%' offset ? limit ?";
+        var query = "".equals(search) ? "select id, title, image, text, tags, likes_count from post limit ? offset ?"
+                : "select id, title, image, text, tags, likes_count from post where tags like '%" + search + "%' limit ? offset ?";
         return jdbcTemplate.query(query,
                 (rs, rowNum) -> new Post(
                         rs.getLong("id"),
@@ -28,7 +28,7 @@ public class PostRepository {
                         rs.getString("text"),
                         rs.getString("tags"),
                         rs.getInt("likes_count")
-                ), offset, pageSize);
+                ), pageSize, offset);
     }
 
     public long saveNewPost(String title, byte[] image, String tags, String text) {

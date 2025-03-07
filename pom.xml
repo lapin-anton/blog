@@ -21,6 +21,7 @@
         <spring.data.jdbc.version>3.4.1</spring.data.jdbc.version>
         <junit.version>5.12.0</junit.version>
         <mockito.version>5.5.0</mockito.version>
+        <hamcrest.version>3.0</hamcrest.version>
         <h2.version>2.3.232</h2.version>
     </properties>
 
@@ -97,6 +98,11 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
         </dependency>
 
         <!-- data base for tests -->
