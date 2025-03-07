@@ -1,5 +1,6 @@
 package ru.yandex.practicum.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Post {
 
     public Post (Long id, String title, byte[] image, String text, String tags, Integer likesCount) {
