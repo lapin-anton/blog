@@ -20,7 +20,7 @@ public class PostService {
     }
 
     public void savePost(String title, MultipartFile image, String tags, String text) throws IOException {
-        postRepository.saveNewPost(title, image.getBytes(), tags, text);
+        postRepository.savePost(title, image.getBytes(), tags, text);
     }
 
     public Post findById(Long postId) {

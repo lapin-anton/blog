@@ -31,7 +31,7 @@ public class PostRepository {
                 ), pageSize, offset);
     }
 
-    public long saveNewPost(String title, byte[] image, String tags, String text) {
+    public long savePost(String title, byte[] image, String tags, String text) {
         GeneratedKeyHolder holder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(con -> {
@@ -49,12 +49,13 @@ public class PostRepository {
 
     public void updatePost(Post post) {
         jdbcTemplate.update(con -> {
-            PreparedStatement statement = con.prepareStatement("update post set title = ?, text = ?, tags = ?, likes_count = ? where id = ?");
+            PreparedStatement statement = con.prepareStatement("update post set title = ?, image = ?, text = ?, tags = ?, likes_count = ? where id = ?");
             statement.setString(1, post.getTitle());
-            statement.setString(2, post.getText());
-            statement.setString(3, post.getTagsAsText());
-            statement.setInt(4, post.getLikesCount());
-            statement.setLong(5, post.getId());
+            statement.setBytes(2, post.getImage());
+            statement.setString(3, post.getText());
+            statement.setString(4, post.getTagsAsText());
+            statement.setInt(5, post.getLikesCount());
+            statement.setLong(6, post.getId());
             return statement;
         });
     }
@@ -68,7 +69,7 @@ public class PostRepository {
                      rs.getString("text"),
                      rs.getString("tags"),
                      rs.getInt("likes_count")
-                ), postId).get(0);
+                ), postId).stream().findFirst().orElse(null);
     }
 
     public int getPostCount(String search) {

@@ -52,7 +52,7 @@ class PostServiceTest {
         String tags = "tag1 tag2";
         String text = "This is a test post.";
         postService.savePost(title, image, tags, text);
-        verify(postRepository, times(1)).saveNewPost(eq(title), eq(image.getBytes()), eq(tags), eq(text));
+        verify(postRepository, times(1)).savePost(eq(title), eq(image.getBytes()), eq(tags), eq(text));
     }
 
     @Test
