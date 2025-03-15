@@ -9,9 +9,9 @@ public class Paging {
 
     private int pageSize;
     private int pageNumber;
-    private int pageCount;
+    private long pageCount;
 
-    public Paging(int postCount, int pageNumber, int pageSize) {
+    public Paging(long postCount, int pageNumber, int pageSize) {
         this.pageSize = pageSize;
         this.pageNumber = pageNumber;
         this.pageCount = postCount / pageSize + (postCount % pageSize > 0 ? 1 : 0);
