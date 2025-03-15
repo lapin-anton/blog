@@ -9,6 +9,7 @@ import ru.yandex.practicum.model.entity.Post;
 import ru.yandex.practicum.repository.PostRepository;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -31,9 +32,12 @@ public class PostService {
     public void savePost(String title, MultipartFile image, String tags, String text) throws IOException {
         var post = new Post();
         post.setTitle(title);
-        post.setImage(image.getBytes());
+        if (image != null) {
+            post.setImage(Base64.getEncoder().encodeToString(image.getBytes()));
+        }
         post.setTags(tags);
         post.setText(text);
+        post.setLikesCount(0);
         postRepository.save(post);
     }
 
@@ -64,7 +68,9 @@ public class PostService {
     public void updatePost(Long postId, String title, MultipartFile image, String tags, String text) throws Exception {
         var post = postRepository.findById(postId).orElseThrow();
         post.setTitle(title);
-        post.setImage(image.getBytes());
+        if (image != null) {
+            post.setImage(Base64.getEncoder().encodeToString(image.getBytes()));
+        }
         post.setTags(tags);
         post.setText(text);
         postRepository.save(post);

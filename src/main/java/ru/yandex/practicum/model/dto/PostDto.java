@@ -1,10 +1,10 @@
 package ru.yandex.practicum.model.dto;
 
 import lombok.Data;
-import lombok.Getter;
 import ru.yandex.practicum.model.entity.Post;
 
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 @Data
@@ -13,7 +13,7 @@ public class PostDto {
     public PostDto(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
-        this.image = post.getImage();
+        this.image = Base64.getDecoder().decode(post.getImage());
         this.text = post.getText();
         this.textPreview = text != null && text.length() > 300 ? text.substring(0, 300) + "..." : text;
         this.textParts = text == null ? List.of() : Arrays.stream(text.split("\\n")).toList();

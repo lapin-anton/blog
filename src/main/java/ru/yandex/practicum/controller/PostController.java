@@ -19,6 +19,7 @@ import ru.yandex.practicum.service.CommentService;
 import ru.yandex.practicum.service.PostService;
 
 import java.io.IOException;
+import java.util.Base64;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,30 +44,31 @@ public class PostController {
         return "posts";
     }
 
-//    @GetMapping("/add")
-//    public String addPost() {
-//        return "add-post";
-//    }
-//
-//    @PostMapping("/savePost")
-//    public String savePost(
-//            @RequestParam("title") String title,
-//            @RequestParam(value = "image") MultipartFile image,
-//            @RequestParam("tags") String tags,
-//            @RequestParam("text") String text) throws IOException {
-//        postService.savePost(title, image, tags, text);
-//        return "redirect:/";
-//    }
-//
-//    @GetMapping("/images/{postId}")
-//    public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) {
-//        var post = postService.findById(postId);
-//        return ResponseEntity.ok()
-//                .headers(new HttpHeaders())
-//                .contentLength(post.getImage().length)
-//                .contentType(MediaType.parseMediaType("application/octet-stream"))
-//                .body(new ByteArrayResource(post.getImage()));
-//    }
+    @GetMapping("/add")
+    public String addPost() {
+        return "add-post";
+    }
+
+    @PostMapping("/savePost")
+    public String savePost(
+            @RequestParam("title") String title,
+            @RequestParam(value = "image") MultipartFile image,
+            @RequestParam("tags") String tags,
+            @RequestParam("text") String text) throws IOException {
+        postService.savePost(title, image, tags, text);
+        return "redirect:/";
+    }
+
+    @GetMapping("/images/{postId}")
+    public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) {
+        var post = postService.findById(postId);
+        var image = Base64.getDecoder().decode(post.getImage());
+        return ResponseEntity.ok()
+                .headers(new HttpHeaders())
+                .contentLength(image.length)
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .body(new ByteArrayResource(image));
+    }
 //
 //    @GetMapping("/{postId}")
 //    public String showPost(Model model, @PathVariable("postId") Long postId) {
