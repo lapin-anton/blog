@@ -29,7 +29,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    public void deleteCommentsByPostId(Post post) {
+    public void deleteCommentsByPost(Post post) {
         commentRepository.deleteAllByPost(post);
     }
 }

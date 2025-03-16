@@ -89,7 +89,7 @@ public class PostController {
     @Transactional
     public String deletePost(@PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
-        commentService.deleteCommentsByPostId(post);
+        commentService.deleteCommentsByPost(post);
         postService.deletePost(postId);
         return "redirect:/";
     }

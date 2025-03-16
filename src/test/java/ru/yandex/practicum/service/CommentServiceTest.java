@@ -6,13 +6,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
-import ru.yandex.practicum.model.Comment;
+import ru.yandex.practicum.model.entity.Comment;
+import ru.yandex.practicum.model.entity.Post;
 import ru.yandex.practicum.repository.CommentRepository;
 
 class CommentServiceTest {
@@ -30,45 +29,45 @@ class CommentServiceTest {
 
     @Test
     void addCommentToPost_shouldCallRepository() {
-        Long postId = 1L;
+        var post = new Post();
         String text = "Test comment";
-        commentService.addCommentToPost(postId, text);
-        verify(commentRepository, times(1)).addComment(postId, text);
+        var comment = new Comment();
+        comment.setPost(post);
+        comment.setText(text);
+
+        commentService.addCommentToPost(post, text);
+
+        verify(commentRepository, times(1)).save(comment);
     }
 
     @Test
     void deleteCommentFromPost_shouldCallRepository() {
         Long commentId = 1L;
         commentService.deleteCommentFromPost(commentId);
-        verify(commentRepository, times(1)).deleteCommentById(commentId);
+        verify(commentRepository, times(1)).deleteById(commentId);
     }
 
     @Test
-    void updateComment_shouldCallRepository() {
+    void updateComment_shouldCallRepository() throws Exception {
         Long commentId = 1L;
         String newText = "Updated comment";
+        var comment = new Comment();
+        comment.setId(commentId);
+        comment.setPost(new Post());
+        comment.setText(newText);
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
+
         commentService.updateComment(commentId, newText);
-        verify(commentRepository, times(1)).updateComment(commentId, newText);
+
+        verify(commentRepository, times(1)).findById(commentId);
+        verify(commentRepository, times(1)).save(comment);
     }
 
     @Test
-    void findAllCommentsByPostId_shouldReturnListOfComments() {
-        Long postId = 1L;
-        List<Comment> expectedComments = Arrays.asList(
-                new Comment(1L, 1L, "Comment 1"),
-                new Comment(2L, 1L, "Comment 2")
-        );
-        when(commentRepository.findAllCommentsByPostId(postId)).thenReturn(expectedComments);
-        List<Comment> actualComments = commentService.findAllCommentsByPostId(postId);
-        assertEquals(expectedComments, actualComments);
-        verify(commentRepository, times(1)).findAllCommentsByPostId(postId);
-    }
-
-    @Test
-    void deleteCommentsByPostId_shouldCallRepository() {
-        Long postId = 1L;
-        commentService.deleteCommentsByPostId(postId);
-        verify(commentRepository, times(1)).deleteCommentsByPostId(postId);
+    void deleteCommentsByPost_shouldCallRepository() {
+        var post = new Post();
+        commentService.deleteCommentsByPost(post);
+        verify(commentRepository, times(1)).deleteAllByPost(post);
     }
 
 }
