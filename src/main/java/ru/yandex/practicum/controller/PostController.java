@@ -91,25 +91,26 @@ public class PostController {
         postService.deletePost(postId);
         return "redirect:/";
     }
-//
-//    @GetMapping("/{postId}/edit")
-//    public String editPost(Model model, @PathVariable("postId") Long postId) {
-//        var post = postService.findById(postId);
-//        model.addAttribute("post", post);
-//        return "add-post";
-//    }
-//
-//    @PostMapping("/{postId}")
-//    public String updatePost(
-//            @PathVariable("postId") Long postId,
-//            @RequestParam("title") String title,
-//            @RequestParam("image") MultipartFile image,
-//            @RequestParam("tags") String tags,
-//            @RequestParam("text") String text
-//            ) throws IOException {
-//        postService.updatePost(postId, title, image, tags, text);
-//        return "redirect:/" + postId;
-//    }
+
+    @GetMapping("/{postId}/edit")
+    public String editPost(Model model, @PathVariable("postId") Long postId) throws Exception {
+        var post = postService.findById(postId);
+        var postDto = new PostDto(post);
+        model.addAttribute("post", postDto);
+        return "add-post";
+    }
+
+    @PostMapping("/{postId}")
+    public String updatePost(
+            @PathVariable("postId") Long postId,
+            @RequestParam("title") String title,
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("tags") String tags,
+            @RequestParam("text") String text
+            ) throws Exception {
+        postService.updatePost(postId, title, image, tags, text);
+        return "redirect:/" + postId;
+    }
 //
 //    @PostMapping("/{postId}/comments")
 //    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
