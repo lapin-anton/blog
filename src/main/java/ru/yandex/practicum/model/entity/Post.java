@@ -3,6 +3,7 @@ package ru.yandex.practicum.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode
 @Entity
 @Table(name = "post")
+@NoArgsConstructor
 public class Post {
 
     @Id
@@ -29,4 +31,11 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private List<Comment> comments;
 
+    public Post(String title, String image, String text, String tags, Integer likesCount) {
+        this.title = title;
+        this.image = image;
+        this.text = text;
+        this.tags = tags;
+        this.likesCount = likesCount;
+    }
 }

@@ -10,6 +10,17 @@ import java.util.List;
 @Data
 public class PostDto {
 
+    private Long id;
+    private String title;
+    private byte[] image;
+    private String text;
+    private String textPreview;
+    private List<String> textParts;
+    private List<String> tags;
+    private String tagsAsText;
+    private Integer likesCount;
+    private List<CommentDto> comments;
+
     public PostDto(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
@@ -22,15 +33,5 @@ public class PostDto {
         this.likesCount = post.getLikesCount();
         this.comments = post.getComments().stream().map(CommentDto::new).toList();
     }
-    private Long id;
-    private String title;
-    private byte[] image;
-    private String text;
-    private String textPreview;
-    private List<String> textParts;
-    private List<String> tags;
-    private String tagsAsText;
-    private Integer likesCount;
-    private List<CommentDto> comments;
 
 }

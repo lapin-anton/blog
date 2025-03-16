@@ -3,52 +3,50 @@ package ru.yandex.practicum.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import ru.yandex.practicum.config.DataSourceConfig;
-import ru.yandex.practicum.config.WebConfig;
+import ru.yandex.practicum.model.entity.Comment;
+import ru.yandex.practicum.model.entity.Post;
+import ru.yandex.practicum.repository.CommentRepository;
+import ru.yandex.practicum.repository.PostRepository;
+
+import java.util.Base64;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringJUnitConfig(classes = {DataSourceConfig.class, WebConfig.class})
-@WebAppConfiguration
-@TestPropertySource(locations = "classpath:application-test.properties")
+@SpringBootTest
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
 class PostControllerTest {
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private MockMvc mockMvc;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private PostRepository postRepository;
 
-    private MockMvc mockMvc;
+    @Autowired
+    private CommentRepository commentRepository;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        jdbcTemplate.execute("DELETE FROM comment");
-        jdbcTemplate.execute("ALTER TABLE comment ALTER COLUMN id RESTART WITH 1");
-        jdbcTemplate.execute("DELETE FROM post");
-        jdbcTemplate.execute("ALTER TABLE post ALTER COLUMN id RESTART WITH 1");
-        jdbcTemplate.update("INSERT INTO post (title, image, text, tags, likes_count) VALUES (?, ?, ?, ?, ?)",
-                "Post 1", "Post Image Content One".getBytes(), "Post Text1", "Tag1 Tag2", 10);
-        jdbcTemplate.update("INSERT INTO post (title, image, text, tags, likes_count) VALUES (?, ?, ?, ?, ?)",
-                "Post 2", "Post Image Content Two".getBytes(), "Post Text2", "Tag2 Tag3", 5);
-        jdbcTemplate.execute("INSERT INTO comment (post_id, text) VALUES (1, 'Comment 1')");
-        jdbcTemplate.execute("INSERT INTO comment (post_id, text) VALUES (1, 'Comment 2')");
-        jdbcTemplate.execute("INSERT INTO comment (post_id, text) VALUES (2, 'Comment 3')");
-        jdbcTemplate.execute("INSERT INTO comment (post_id, text) VALUES (2, 'Comment 4')");
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
     }
 
     @Test
     void showPosts_shouldReturnHtmlWithPosts() throws Exception {
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
+        );
+        postRepository.saveAll(posts);
+
         mockMvc.perform(get("/")
                         .param("pageSize", "5")
                         .param("pageNumber", "1")
@@ -67,6 +65,12 @@ class PostControllerTest {
 
     @Test
     void showPosts_shoudReturnHtmlWithPostsHavingSearchedTagOnly() throws Exception {
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
+        );
+        postRepository.saveAll(posts);
+
         mockMvc.perform(get("/")
                 .param("pageSize", "5")
                 .param("pageNumber", "1")
@@ -112,6 +116,12 @@ class PostControllerTest {
 
     @Test
     void showPosts_shouldReturnPostsOnPageOnly() throws Exception {
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
+        );
+        postRepository.saveAll(posts);
+
         mockMvc.perform(get("/")
                         .param("pageSize", "1")
                         .param("pageNumber", "1")
@@ -146,7 +156,7 @@ class PostControllerTest {
         );
         mockMvc.perform(multipart("/savePost")
                 .file("image", mockImage.getBytes())
-                .param("title", "Post 3")
+                .param("title", "Post 1")
                 .param("tags", "Tag3 Tag4")
                 .param("text", "Post text4")
             )
@@ -164,14 +174,18 @@ class PostControllerTest {
                 .andExpect(model().attributeExists("posts"))
                 .andExpect(model().attributeExists("paging"))
                 .andExpect(model().attributeExists("search"))
-                .andExpect(xpath("/html/body/div/table/tr").nodeCount(4))
-                .andExpect(xpath("/html/body/div/table/tr[4]/td/div[1]/a/h2").string("Post 3"));
+                .andExpect(xpath("/html/body/div/table/tr").nodeCount(2))
+                .andExpect(xpath("/html/body/div/table/tr[2]/td/div[1]/a/h2").string("Post 1"));
     }
 
     @Test
     void downloadImage_shouldReturnImageResource() throws Exception {
-        var imageBytes = "Post Image Content One".getBytes();
-        mockMvc.perform(get("/images/{postId}", 1L))
+        var image = "z8LD8hEMeJU77Bg4sqV3yw==";
+        var imageBytes = Base64.getDecoder().decode(image);
+        var post = new Post("Post 1", image, "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+
+        mockMvc.perform(get("/images/{postId}", post.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/octet-stream"))
                 .andExpect(header().string("Content-Length", String.valueOf(imageBytes.length)))
@@ -180,7 +194,15 @@ class PostControllerTest {
 
     @Test
     void showPost_shouldReturnHtmlWithPost() throws Exception {
-        mockMvc.perform(get("/{postId}", 1L))
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+        var comments = List.of(
+                new Comment(post, "Comment 1"),
+                new Comment(post, "Comment 2")
+        );
+        commentRepository.saveAll(comments);
+
+        mockMvc.perform(get("/{postId}", post.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("post"))
@@ -191,7 +213,10 @@ class PostControllerTest {
 
     @Test
     void changeRating_shouldRedirectToSamePage() throws Exception {
-        Long postId = 1L;
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+        var postId = post.getId();
+
         mockMvc.perform(post("/{postId}/like", postId)
                         .param("like", "true")
                 )
@@ -201,19 +226,26 @@ class PostControllerTest {
 
     @Test
     void deletePost_shouldRedirectToPostsPage() throws Exception {
-        mockMvc.perform(post("/{postId}/delete", 1L))
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+
+        mockMvc.perform(post("/{postId}/delete", post.getId()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
     }
 
     @Test
     void editPost_shouldReturnHtmlAddPostForm() throws Exception {
-        mockMvc.perform(get("/{postId}/edit", 1L))
+        var postTitle = "Post 1";
+        var post = new Post(postTitle, "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+
+        mockMvc.perform(get("/{postId}/edit", post.getId()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("add-post"))
                 .andExpect(model().attributeExists("post"))
-                .andExpect(xpath("/html/body/form/table/tr[1]/td/textarea").string("Post 1"));
+                .andExpect(xpath("/html/body/form/table/tr[1]/td/textarea").string(postTitle));
     }
 
     @Test
@@ -224,10 +256,14 @@ class PostControllerTest {
                 "image/png",
                 "Mock Image Content".getBytes()
         );
-        var postId = 1L;
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+        var postId = post.getId();
+        var editedTitle = "Post Edited";
+
         mockMvc.perform(multipart("/{postId}", postId)
                         .file("image", mockImage.getBytes())
-                        .param("title", "Post 11")
+                        .param("title", editedTitle)
                         .param("tags", "Tag11 Tag22")
                         .param("text", "Post text11")
                 )
@@ -245,13 +281,17 @@ class PostControllerTest {
                 .andExpect(model().attributeExists("posts"))
                 .andExpect(model().attributeExists("paging"))
                 .andExpect(model().attributeExists("search"))
-                .andExpect(xpath("/html/body/div/table/tr").nodeCount(3))
-                .andExpect(xpath("/html/body/div/table/tr[2]/td/div[1]/a/h2").string("Post 11"));
+                .andExpect(xpath("/html/body/div/table/tr").nodeCount(2))
+                .andExpect(xpath("/html/body/div/table/tr[2]/td/div[1]/a/h2").string(editedTitle));
     }
 
     @Test
     void addComment_shouldReturnSamePostPage() throws Exception {
-        var postId = 1L;
+        var postTitle = "Post 1";
+        var post = new Post(postTitle, "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+
+        var postId = post.getId();
         var addedComment = "Added Comment";
         mockMvc.perform(post("/{postId}/comments", postId).param("text", addedComment))
                 .andExpect(status().is3xxRedirection())
@@ -262,15 +302,21 @@ class PostControllerTest {
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("post"))
                 .andExpect(model().attributeExists("post"))
-                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string("Post 1"))
-                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(3))
-                .andExpect(xpath("/html/body/div/table/tr[7]/td[1]/form/span").string(addedComment));
+                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string(postTitle))
+                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(1))
+                .andExpect(xpath("/html/body/div/table/tr[5]/td[1]/form/span").string(addedComment));
     }
 
     @Test
     void updateComment_shouldReturnSamePostPage() throws Exception {
-        var postId = 1L;
-        var commentId = 1L;
+        var postTitle = "Post 1";
+        var post = new Post(postTitle, "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+        var comment = new Comment(post, "Comment 1");
+        comment = commentRepository.save(comment);
+        var postId = post.getId();
+        var commentId = comment.getId();
+
         var editedCommentText = "Edited Comment";
         mockMvc.perform(post("/{postId}/comments/{commentId}", postId, commentId)
                         .param("text", editedCommentText))
@@ -282,15 +328,21 @@ class PostControllerTest {
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("post"))
                 .andExpect(model().attributeExists("post"))
-                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string("Post 1"))
-                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(2))
+                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string(postTitle))
+                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(1))
                 .andExpect(xpath("/html/body/div/table/tr[5]/td[1]/form/span").string(editedCommentText));
     }
 
     @Test
     void deleteComment_shouldReturnSamePostPage() throws Exception {
-        var postId = 1L;
-        var commentId = 1L;
+        var postTitle = "Post 1";
+        var post = new Post(postTitle, "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
+        var comment = new Comment(post, "Comment 1");
+        comment = commentRepository.save(comment);
+        var postId = post.getId();
+        var commentId = comment.getId();
+
         mockMvc.perform(post("/{postId}/comments/{commentId}/delete", postId, commentId))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/" + postId));
@@ -300,8 +352,8 @@ class PostControllerTest {
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("post"))
                 .andExpect(model().attributeExists("post"))
-                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string("Post 1"))
-                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(1));
+                .andExpect(xpath("/html/body/div/table/tr[2]/td/h2").string(postTitle))
+                .andExpect(xpath("/html/body/div/table/tr/td[1]/form/span").nodeCount(0));
     }
 
 }

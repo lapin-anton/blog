@@ -1,5 +1,6 @@
 package ru.yandex.practicum.controller;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -85,6 +86,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/delete")
+    @Transactional
     public String deletePost(@PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
         commentService.deleteCommentsByPostId(post);
