@@ -83,13 +83,14 @@ public class PostController {
         postService.changePostLikesCount(postId, like);
         return "redirect:/" + postId;
     }
-//
-//    @PostMapping("/{postId}/delete")
-//    public String deletePost(@PathVariable("postId") Long postId) {
-//        commentService.deleteCommentsByPostId(postId);
-//        postService.deletePost(postId);
-//        return "redirect:/";
-//    }
+
+    @PostMapping("/{postId}/delete")
+    public String deletePost(@PathVariable("postId") Long postId) throws Exception {
+        var post = postService.findById(postId);
+        commentService.deleteCommentsByPostId(post);
+        postService.deletePost(postId);
+        return "redirect:/";
+    }
 //
 //    @GetMapping("/{postId}/edit")
 //    public String editPost(Model model, @PathVariable("postId") Long postId) {
