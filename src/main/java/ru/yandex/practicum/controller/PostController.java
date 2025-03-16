@@ -118,15 +118,15 @@ public class PostController {
         commentService.addCommentToPost(post, text);
         return "redirect:/" + postId;
     }
-//
-//    @PostMapping("/{postId}/comments/{commentId}")
-//    public String updateComment(
-//            @PathVariable("postId") Long postId,
-//            @PathVariable("commentId") Long commentId,
-//            @RequestParam("text") String text) {
-//        commentService.updateComment(commentId, text);
-//        return "redirect:/" + postId;
-//    }
+
+    @PostMapping("/{postId}/comments/{commentId}")
+    public String updateComment(
+            @PathVariable("postId") Long postId,
+            @PathVariable("commentId") Long commentId,
+            @RequestParam("text") String text) throws Exception {
+        commentService.updateComment(commentId, text);
+        return "redirect:/" + postId;
+    }
 //
 //    @PostMapping("/{postId}/comments/{commentId}/delete")
 //    public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
