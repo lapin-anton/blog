@@ -111,12 +111,13 @@ public class PostController {
         postService.updatePost(postId, title, image, tags, text);
         return "redirect:/" + postId;
     }
-//
-//    @PostMapping("/{postId}/comments")
-//    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
-//        commentService.addCommentToPost(postId, text);
-//        return "redirect:/" + postId;
-//    }
+
+    @PostMapping("/{postId}/comments")
+    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) throws Exception {
+        var post = postService.findById(postId);
+        commentService.addCommentToPost(post, text);
+        return "redirect:/" + postId;
+    }
 //
 //    @PostMapping("/{postId}/comments/{commentId}")
 //    public String updateComment(
