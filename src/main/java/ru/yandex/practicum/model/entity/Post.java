@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"id"})
 @Entity
 @Table(name = "post")
 @NoArgsConstructor

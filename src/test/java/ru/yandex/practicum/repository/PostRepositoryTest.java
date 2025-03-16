@@ -3,119 +3,131 @@ package ru.yandex.practicum.repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import ru.yandex.practicum.config.DataSourceConfig;
-import ru.yandex.practicum.model.Post;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import ru.yandex.practicum.model.entity.Post;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringJUnitConfig(classes = {DataSourceConfig.class, PostRepository.class})
-@TestPropertySource(locations = "classpath:application-test.properties")
+@DataJpaTest
 class PostRepositoryTest {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private PostRepository postRepository;
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("DELETE FROM post");
-        jdbcTemplate.execute("ALTER TABLE post ALTER COLUMN id RESTART WITH 1");
-        jdbcTemplate.update("INSERT INTO post (title, image, text, tags, likes_count) VALUES (?, ?, ?, ?, ?)",
-                "Post 1", "Post Image Content One".getBytes(), "Post Text1", "Tag1 Tag2", 10);
-        jdbcTemplate.update("INSERT INTO post (title, image, text, tags, likes_count) VALUES (?, ?, ?, ?, ?)",
-                "Post 2", "Post Image Content Two".getBytes(), "Post Text2", "Tag2 Tag3", 5);
+        postRepository.deleteAll();
     }
 
     @Test
     void findAll_shouldReturnAllPostsByPage() throws Exception {
-        var expected = List.of(
-                new Post(1L, "Post 1", "Post Image Content One".getBytes(), "Post Text1", "Tag1 Tag2", 10),
-                new Post(2L, "Post 2", "Post Image Content Two".getBytes(), "Post Text2", "Tag2 Tag3", 5)
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
         );
+        postRepository.saveAll(posts);
+        Pageable pageable = PageRequest.of(0, 5);
 
-        var founded = postRepository.findAll("", 1, 5);
+        var founded = postRepository.findAll(pageable).toList();
 
         assertNotNull(founded);
         assertEquals(2, founded.size());
-        assertArrayEquals(expected.toArray(), founded.toArray());
+        assertArrayEquals(posts.toArray(), founded.toArray());
     }
 
     @Test
-    void findAll_shouldReturnAllPostsByTag() throws Exception {
-        var expected = List.of(
-                new Post(1L, "Post 1", "Post Image Content One".getBytes(), "Post Text1", "Tag1 Tag2", 10),
-                new Post(2L, "Post 2", "Post Image Content Two".getBytes(), "Post Text2", "Tag2 Tag3", 5)
+    void findAllByTagsContaining_shouldReturnAllPostsByTag() throws Exception {
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
         );
+        postRepository.saveAll(posts);
+        Pageable pageable = PageRequest.of(0, 5);
+        var search = "Tag1";
 
-        var founded = postRepository.findAll("Tag1", 1, 5);
+        var founded = postRepository.findAllByTagsContaining(search, pageable).toList();
 
         assertNotNull(founded);
         assertEquals(1, founded.size());
-        assertEquals(expected.get(0), founded.get(0));
+        assertEquals(posts.get(0), founded.get(0));
     }
 
     @Test
     void savePost_shouldAddPostToDb() throws Exception {
         var title = "Added Post Title";
-        var image = "Added Post Image".getBytes();
+        var image = "z8LD8hEMeJU77Bg4sqV3yw==";
         var tags = "added post";
         var text = "Added Post Text";
+        var likesCount = 13;
+        var post = new Post(title, image, text, tags, likesCount);
 
-        var postId = postRepository.savePost(title, image, tags, text);
+        post = postRepository.save(post);
 
-        var founded = postRepository.findById(postId);
+        var foundedOpt = postRepository.findById(post.getId());
 
-        assertNotNull(founded);
-        assertEquals(title, founded.getTitle());
-        assertArrayEquals(image, founded.getImage());
-        assertEquals(tags, founded.getTagsAsText());
-        assertEquals(text, founded.getText());
-        assertEquals(0, founded.getLikesCount());
+        assertTrue(foundedOpt.isPresent());
+        assertEquals(title, foundedOpt.get().getTitle());
+        assertEquals(image, foundedOpt.get().getImage());
+        assertEquals(tags, foundedOpt.get().getTags());
+        assertEquals(text, foundedOpt.get().getText());
+        assertEquals(likesCount, foundedOpt.get().getLikesCount());
     }
 
     @Test
     void updatePost_shouldUpdatePostInDb() throws Exception {
-        var postId = 1L;
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
         var title = "Updated Post Title";
-        var image = "Updated Post Image".getBytes();
+        var image = "+xMdSf3cjVcMebeAedfpnw==";
         var tags = "updated post";
         var text = "updated Post Text";
         var likesCount = 100;
-        var post = new Post(postId, title, image, text, tags, likesCount);
+        post.setTitle(title);
+        post.setImage(image);
+        post.setTags(tags);
+        post.setText(text);
+        post.setLikesCount(likesCount);
 
-        postRepository.updatePost(post);
+        postRepository.save(post);
 
-        var founded = postRepository.findById(postId);
+        var foundedOpt = postRepository.findById(post.getId());
 
-        assertNotNull(founded);
-        assertEquals(post, founded);
+        assertTrue(foundedOpt.isPresent());
+        assertEquals(title, foundedOpt.get().getTitle());
+        assertEquals(image, foundedOpt.get().getImage());
+        assertEquals(tags, foundedOpt.get().getTags());
+        assertEquals(text, foundedOpt.get().getText());
+        assertEquals(likesCount, foundedOpt.get().getLikesCount());
     }
 
     @Test
     void getPostCount_shouldReturnSavedPostsCount() throws Exception {
-        var expectedAllCount = 2;
-        assertEquals(expectedAllCount, postRepository.getPostCount(""));
+        var posts = List.of(
+                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
+                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
+        );
+        postRepository.saveAll(posts);
+        var expectedAllCount = 2L;
+        assertEquals(expectedAllCount, postRepository.count());
 
-        var expectedTag1Count = 1;
-        assertEquals(expectedTag1Count, postRepository.getPostCount("Tag1"));
+        var expectedTag1Count = 1L;
+        assertEquals(expectedTag1Count, postRepository.getCountByTagsLike("Tag1 Tag2"));
     }
 
     @Test
     void delete_shouldDeletePostFromDb() throws Exception {
-        var postId = 1L;
+        var post = new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10);
+        post = postRepository.save(post);
 
-        postRepository.delete(postId);
+        postRepository.delete(post);
 
-        var founded = postRepository.findById(postId);
+        var foundedOpt = postRepository.findById(post.getId());
 
-        assertNull(founded);
+        assertTrue(foundedOpt.isEmpty());
     }
 
 }
