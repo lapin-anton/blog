@@ -6,8 +6,6 @@ import ru.yandex.practicum.model.entity.Comment;
 import ru.yandex.practicum.model.entity.Post;
 import ru.yandex.practicum.repository.CommentRepository;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -29,10 +27,6 @@ public class CommentService {
         var comment = commentRepository.findById(commentId).orElseThrow();
         comment.setText(text);
         commentRepository.save(comment);
-    }
-
-    public List<Comment> findAllCommentsByPostId(Post post) {
-        return commentRepository.findAllByPost(post);
     }
 
     public void deleteCommentsByPostId(Post post) {

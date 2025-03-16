@@ -5,12 +5,8 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.model.entity.Comment;
 import ru.yandex.practicum.model.entity.Post;
 
-import java.util.List;
-
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-
-    List<Comment> findAllByPost(Post post);
 
     void deleteAllByPost(Post post);
 
