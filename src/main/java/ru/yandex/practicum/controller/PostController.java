@@ -60,7 +60,7 @@ public class PostController {
     }
 
     @GetMapping("/images/{postId}")
-    public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) {
+    public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
         var image = Base64.getDecoder().decode(post.getImage());
         return ResponseEntity.ok()
@@ -69,14 +69,14 @@ public class PostController {
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
                 .body(new ByteArrayResource(image));
     }
-//
-//    @GetMapping("/{postId}")
-//    public String showPost(Model model, @PathVariable("postId") Long postId) {
-//        var post = postService.findById(postId);
-//        post.setComments(commentService.findAllCommentsByPostId(postId));
-//        model.addAttribute("post", post);
-//        return "post";
-//    }
+
+    @GetMapping("/{postId}")
+    public String showPost(Model model, @PathVariable("postId") Long postId) throws Exception {
+        var post = postService.findById(postId);
+        var postDto = new PostDto(post);
+        model.addAttribute("post", postDto);
+        return "post";
+    }
 //
 //    @PostMapping("/{postId}/like")
 //    public String changeRating(@PathVariable("postId") Long postId, @RequestParam("like") boolean like) {

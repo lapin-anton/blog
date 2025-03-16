@@ -41,8 +41,8 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public Post findById(Long postId) {
-        return postRepository.findById(postId).orElse(null);
+    public Post findById(Long postId) throws Exception {
+        return postRepository.findById(postId).orElseThrow();
     }
 
     public long getPostCount(String search) {
