@@ -77,12 +77,12 @@ public class PostController {
         model.addAttribute("post", postDto);
         return "post";
     }
-//
-//    @PostMapping("/{postId}/like")
-//    public String changeRating(@PathVariable("postId") Long postId, @RequestParam("like") boolean like) {
-//        postService.changePostLikesCount(postId, like);
-//        return "redirect:/" + postId;
-//    }
+
+    @PostMapping("/{postId}/like")
+    public String changeRating(@PathVariable("postId") Long postId, @RequestParam("like") boolean like) throws Exception {
+        postService.changePostLikesCount(postId, like);
+        return "redirect:/" + postId;
+    }
 //
 //    @PostMapping("/{postId}/delete")
 //    public String deletePost(@PathVariable("postId") Long postId) {
