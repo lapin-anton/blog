@@ -127,11 +127,11 @@ public class PostController {
         commentService.updateComment(commentId, text);
         return "redirect:/" + postId;
     }
-//
-//    @PostMapping("/{postId}/comments/{commentId}/delete")
-//    public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
-//        commentService.deleteCommentFromPost(commentId);
-//        return "redirect:/" + postId;
-//    }
+
+    @PostMapping("/{postId}/comments/{commentId}/delete")
+    public String deleteComment(@PathVariable("postId") Long postId, @PathVariable("commentId") Long commentId) {
+        commentService.deleteCommentFromPost(commentId);
+        return "redirect:/" + postId;
+    }
 
 }
