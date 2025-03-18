@@ -5,22 +5,21 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import ru.yandex.practicum.model.entity.Post;
+import ru.yandex.practicum.model.Post;
 import ru.yandex.practicum.repository.PostRepository;
 
 import java.io.IOException;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
-
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PostServiceTest {
 
@@ -40,21 +39,14 @@ class PostServiceTest {
         String search = "test";
         int pageNumber = 1;
         int pageSize = 10;
-        var posts = List.of(
-                new Post("Post 1", "z8LD8hEMeJU77Bg4sqV3yw==", "Post Text1", "Tag1 Tag2", 10),
-                new Post("Post 2", "+xMdSf3cjVcMebeAedfpnw==", "Post Text2", "Tag2 Tag3", 5)
+        List<Post> expectedPosts = Arrays.asList(
+                new Post(1L, "Title 1", null, "Text 1", "tag1 tag2", 5),
+                new Post(2L, "Title 2", null, "Text 2", "tag3 tag4", 10)
         );
-        Page<Post> postPage = new PageImpl<>(posts);
-        Page<Post> postsBySearch = new PageImpl<>(List.of(posts.get(0)));
-        when(postRepository.findAll(PageRequest.of(pageNumber - 1, pageSize))).thenReturn(postPage);
-        when(postRepository.findAllByTagsContaining(search, PageRequest.of(pageNumber - 1, pageSize)))
-                .thenReturn(postsBySearch);
-
-        assertEquals(posts, postService.findAllPosts("", pageNumber, pageSize));
-        verify(postRepository, times(1)).findAll(PageRequest.of(pageNumber - 1, pageSize));
-
-        assertEquals(List.of(posts.get(0)), postService.findAllPosts(search, pageNumber, pageSize));
-        verify(postRepository, times(1)).findAllByTagsContaining(search, PageRequest.of(pageNumber - 1, pageSize));
+        when(postRepository.findAll(search, pageNumber, pageSize)).thenReturn(expectedPosts);
+        List<Post> actualPosts = postService.findAllPosts(search, pageNumber, pageSize);
+        assertEquals(expectedPosts, actualPosts);
+        verify(postRepository, times(1)).findAll(search, pageNumber, pageSize);
     }
 
     @Test
@@ -63,27 +55,17 @@ class PostServiceTest {
         MockMultipartFile image = new MockMultipartFile("image", "image.jpg", "image/jpeg", "image-content".getBytes());
         String tags = "tag1 tag2";
         String text = "This is a test post.";
-        var post = new Post();
-        post.setTitle(title);
-        if (image != null) {
-            post.setImage(Base64.getEncoder().encodeToString(image.getBytes()));
-        }
-        post.setTags(tags);
-        post.setText(text);
-        post.setLikesCount(0);
-
         postService.savePost(title, image, tags, text);
-
-        verify(postRepository, times(1)).save(post);
+        verify(postRepository, times(1)).savePost(eq(title), eq(image.getBytes()), eq(tags), eq(text));
     }
 
     @Test
     void findById_shouldReturnPost() throws Exception {
         Long postId = 1L;
-        var expectedPost = new Post("Title", null, "Text", "tag1 tag2", 5);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(expectedPost));
+        Post expectedPost = new Post(postId, "Title", null, "Text", "tag1 tag2", 5);
+        when(postRepository.findById(postId)).thenReturn(expectedPost);
 
-        var actualPost = postService.findById(postId);
+        Post actualPost = postService.findById(postId);
 
         assertEquals(expectedPost, actualPost);
         verify(postRepository, times(1)).findById(postId);
@@ -92,55 +74,44 @@ class PostServiceTest {
     @Test
     void getPostCount_shouldReturnCount() {
         String search = "test";
-        long expectedAllCount = 42;
-        long expectedSearchCount = 15;
-        when(postRepository.count()).thenReturn(expectedAllCount);
-        when(postRepository.getCountByTagsLike(search)).thenReturn(expectedSearchCount);
+        int expectedCount = 42;
+        when(postRepository.getPostCount(search)).thenReturn(expectedCount);
 
-        long actualAllCount = postService.getPostCount("");
+        int actualCount = postService.getPostCount(search);
 
-        assertEquals(expectedAllCount, actualAllCount);
-        verify(postRepository, times(1)).count();
-
-        long actualSearchCount = postService.getPostCount(search);
-
-        assertEquals(expectedSearchCount, actualSearchCount);
-        verify(postRepository, times(1)).getCountByTagsLike(search);
+        assertEquals(expectedCount, actualCount);
+        verify(postRepository, times(1)).getPostCount(search);
     }
 
     @Test
     void changePostLikesCount_shouldIncreaseLikes() throws Exception {
         Long postId = 1L;
-        Post post = new Post("Title", null, "Text", "tag1 tag2", 5);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        Post post = new Post(postId, "Title", null, "Text", "tag1 tag2", 5);
+        when(postRepository.findById(postId)).thenReturn(post);
 
         postService.changePostLikesCount(postId, true);
 
         assertEquals(6, post.getLikesCount());
-        verify(postRepository, times(1)).findById(postId);
-        verify(postRepository, times(1)).save(post);
+        verify(postRepository, times(1)).updatePost(post);
     }
 
     @Test
     void changePostLikesCount_shouldDecreaseLikes() throws Exception {
         Long postId = 1L;
-        Post post = new Post("Title", null, "Text", "tag1 tag2", 5);
-        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        Post post = new Post(postId, "Title", null, "Text", "tag1 tag2", 5);
+        when(postRepository.findById(postId)).thenReturn(post);
 
         postService.changePostLikesCount(postId, false);
 
         assertEquals(4, post.getLikesCount());
-        verify(postRepository, times(1)).findById(postId);
-        verify(postRepository, times(1)).save(post);
+        verify(postRepository, times(1)).updatePost(post);
     }
 
     @Test
     void deletePost_shouldCallRepositoryDelete() {
         Long postId = 1L;
-
         postService.deletePost(postId);
-
-        verify(postRepository, times(1)).deleteById(postId);
+        verify(postRepository, times(1)).delete(postId);
     }
 
     @Test
@@ -151,18 +122,18 @@ class PostServiceTest {
         String newTags = "newTag1 newTag2";
         String newText = "Updated text.";
 
-        Post existingPost = new Post("Old Title", null, "Old Text", "oldTag1 oldTag2", 10);
+        Post existingPost = new Post(postId, "Old Title", null, "Old Text", "oldTag1 oldTag2", 10);
 
-        when(postRepository.findById(postId)).thenReturn(Optional.of(existingPost));
+        when(postRepository.findById(postId)).thenReturn(existingPost);
 
         postService.updatePost(postId, newTitle, newImage, newTags, newText);
 
         assertEquals(newTitle, existingPost.getTitle());
-        assertArrayEquals(newImage.getBytes(), Base64.getDecoder().decode(existingPost.getImage()));
-        assertEquals(newTags, existingPost.getTags());
+        assertArrayEquals(newImage.getBytes(), existingPost.getImage());
+        assertEquals(newTags, existingPost.getTagsAsText());
         assertEquals(newText, existingPost.getText());
 
-        verify(postRepository, times(1)).save(existingPost);
+        verify(postRepository, times(1)).updatePost(existingPost);
     }
 
 }

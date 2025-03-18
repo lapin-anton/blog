@@ -61,11 +61,11 @@
 >
 >• Gradle
 >
+>• Spring Data JDBC 
+> 
 >• PostgreSQL
 >
->• jpa
->
->• lombok
+>• Lombok
 
 >Тестирование:
 >

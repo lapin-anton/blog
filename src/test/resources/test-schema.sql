@@ -2,7 +2,7 @@ drop table if exists comment;
 drop table if exists post;
 
 create table post (
-    id bigint primary key,
+    id bigserial primary key,
     title varchar(500),
     image bytea,
     text text,
@@ -11,7 +11,7 @@ create table post (
 );
 
 create table comment (
-     id bigserial primary key,
-     post_id bigint references post(id),
-     text text
+    id bigserial primary key,
+    post_id bigint references post(id),
+    text text
 );
