@@ -1,15 +1,12 @@
 package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import ru.yandex.practicum.model.entity.Post;
+import ru.yandex.practicum.model.Post;
 import ru.yandex.practicum.repository.PostRepository;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -19,61 +16,38 @@ public class PostService {
     private final PostRepository postRepository;
 
     public List<Post> findAllPosts(String search, int pageNumber, int pageSize) {
-        List<Post> posts;
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-        if (search.isEmpty()) {
-            posts = postRepository.findAll(pageable).toList();
-        } else {
-            posts = postRepository.findAllByTagsContaining(search, pageable).toList();
-        }
-        return posts;
+        return postRepository.findAll(search, pageNumber, pageSize);
     }
 
     public void savePost(String title, MultipartFile image, String tags, String text) throws IOException {
-        var post = new Post();
-        post.setTitle(title);
-        if (image != null) {
-            post.setImage(Base64.getEncoder().encodeToString(image.getBytes()));
-        }
-        post.setTags(tags);
-        post.setText(text);
-        post.setLikesCount(0);
-        postRepository.save(post);
+        postRepository.savePost(title, image.getBytes(), tags, text);
     }
 
     public Post findById(Long postId) throws Exception {
-        return postRepository.findById(postId).orElseThrow();
+        return postRepository.findById(postId);
     }
 
-    public long getPostCount(String search) {
-        long count;
-        if (search.isEmpty()) {
-            count = postRepository.count();
-        } else {
-            count = postRepository.getCountByTagsLike(search);
-        }
-        return count;
+    public int getPostCount(String search) {
+        return postRepository.getPostCount(search);
     }
 
     public void changePostLikesCount(Long postId, boolean like) throws Exception {
-        var post = postRepository.findById(postId).orElseThrow();
+        var post = postRepository.findById(postId);
         post.setLikesCount(like ? post.getLikesCount() + 1 : post.getLikesCount() - 1);
-        postRepository.save(post);
+        postRepository.updatePost(post);
     }
 
     public void deletePost(Long postId) {
-        postRepository.deleteById(postId);
+        postRepository.delete(postId);
     }
 
     public void updatePost(Long postId, String title, MultipartFile image, String tags, String text) throws Exception {
-        var post = postRepository.findById(postId).orElseThrow();
+        var post = postRepository.findById(postId);
         post.setTitle(title);
-        if (image != null) {
-            post.setImage(Base64.getEncoder().encodeToString(image.getBytes()));
-        }
-        post.setTags(tags);
+        post.setImage(image.getBytes());
+        post.setTagsAsText(tags);
         post.setText(text);
-        postRepository.save(post);
+        postRepository.updatePost(post);
     }
 
 }

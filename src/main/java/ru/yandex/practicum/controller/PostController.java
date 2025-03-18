@@ -1,6 +1,5 @@
 package ru.yandex.practicum.controller;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -15,12 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.model.Paging;
-import ru.yandex.practicum.model.dto.PostDto;
 import ru.yandex.practicum.service.CommentService;
 import ru.yandex.practicum.service.PostService;
 
 import java.io.IOException;
-import java.util.Base64;
 
 @Controller
 @RequiredArgsConstructor
@@ -38,8 +35,8 @@ public class PostController {
         var postCount = postService.getPostCount(search);
         var paging = new Paging(postCount, pageNumber, pageSize);
         var posts = postService.findAllPosts(search, pageNumber, pageSize);
-        var postDtos = posts.stream().map(PostDto::new).toList();
-        model.addAttribute("posts", postDtos);
+        posts.forEach(p -> p.setComments(commentService.findAllCommentsByPostId(p.getId())));
+        model.addAttribute("posts", posts);
         model.addAttribute("paging", paging);
         model.addAttribute("search", search);
         return "posts";
@@ -63,19 +60,18 @@ public class PostController {
     @GetMapping("/images/{postId}")
     public ResponseEntity<Resource> downloadImage(@PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
-        var image = Base64.getDecoder().decode(post.getImage());
         return ResponseEntity.ok()
                 .headers(new HttpHeaders())
-                .contentLength(image.length)
+                .contentLength(post.getImage().length)
                 .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .body(new ByteArrayResource(image));
+                .body(new ByteArrayResource(post.getImage()));
     }
 
     @GetMapping("/{postId}")
     public String showPost(Model model, @PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
-        var postDto = new PostDto(post);
-        model.addAttribute("post", postDto);
+        post.setComments(commentService.findAllCommentsByPostId(postId));
+        model.addAttribute("post", post);
         return "post";
     }
 
@@ -86,10 +82,8 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/delete")
-    @Transactional
-    public String deletePost(@PathVariable("postId") Long postId) throws Exception {
-        var post = postService.findById(postId);
-        commentService.deleteCommentsByPost(post);
+    public String deletePost(@PathVariable("postId") Long postId) {
+        commentService.deleteCommentsByPostId(postId);
         postService.deletePost(postId);
         return "redirect:/";
     }
@@ -97,8 +91,7 @@ public class PostController {
     @GetMapping("/{postId}/edit")
     public String editPost(Model model, @PathVariable("postId") Long postId) throws Exception {
         var post = postService.findById(postId);
-        var postDto = new PostDto(post);
-        model.addAttribute("post", postDto);
+        model.addAttribute("post", post);
         return "add-post";
     }
 
@@ -109,15 +102,14 @@ public class PostController {
             @RequestParam("image") MultipartFile image,
             @RequestParam("tags") String tags,
             @RequestParam("text") String text
-            ) throws Exception {
+    ) throws Exception {
         postService.updatePost(postId, title, image, tags, text);
         return "redirect:/" + postId;
     }
 
     @PostMapping("/{postId}/comments")
-    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) throws Exception {
-        var post = postService.findById(postId);
-        commentService.addCommentToPost(post, text);
+    public String addComment(@PathVariable("postId") Long postId, @RequestParam("text") String text) {
+        commentService.addCommentToPost(postId, text);
         return "redirect:/" + postId;
     }
 
@@ -125,7 +117,7 @@ public class PostController {
     public String updateComment(
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId,
-            @RequestParam("text") String text) throws Exception {
+            @RequestParam("text") String text) {
         commentService.updateComment(commentId, text);
         return "redirect:/" + postId;
     }

@@ -4,7 +4,7 @@ drop table if exists post;
 create table post (
     id bigint primary key,
     title varchar(500),
-    image text,
+    image bytea,
     text text,
     tags text,
     likes_count integer default 0

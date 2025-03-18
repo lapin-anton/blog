@@ -2,9 +2,10 @@ package ru.yandex.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.model.entity.Comment;
-import ru.yandex.practicum.model.entity.Post;
+import ru.yandex.practicum.model.Comment;
 import ru.yandex.practicum.repository.CommentRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -12,24 +13,23 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
 
-    public void addCommentToPost(Post post, String text) {
-        var comment = new Comment();
-        comment.setPost(post);
-        comment.setText(text);
-        commentRepository.save(comment);
+    public void addCommentToPost(Long postId, String text) {
+        commentRepository.addComment(postId, text);
     }
 
     public void deleteCommentFromPost(Long commentId) {
-        commentRepository.deleteById(commentId);
+        commentRepository.deleteCommentById(commentId);
     }
 
-    public void updateComment(Long commentId, String text) throws Exception {
-        var comment = commentRepository.findById(commentId).orElseThrow();
-        comment.setText(text);
-        commentRepository.save(comment);
+    public void updateComment(Long commentId, String text) {
+        commentRepository.updateComment(commentId, text);
     }
 
-    public void deleteCommentsByPost(Post post) {
-        commentRepository.deleteAllByPost(post);
+    public List<Comment> findAllCommentsByPostId(Long postId) {
+        return commentRepository.findAllCommentsByPostId(postId);
+    }
+
+    public void deleteCommentsByPostId(Long postId) {
+        commentRepository.deleteCommentsByPostId(postId);
     }
 }
