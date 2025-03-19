@@ -15,12 +15,12 @@ public class CommentRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Comment> findAllCommentsByPostId(Long postId) {
-        return jdbcTemplate.query("select id, post_id, text from comment where post_id=" + postId,
+        return jdbcTemplate.query("select id, post_id, text from comment where post_id=?",
                 (rs, rowNum) -> new Comment(
                         rs.getLong("id"),
                         rs.getLong("post_id"),
                         rs.getString("text")
-                ));
+                ), postId);
     }
 
     public void deleteCommentsByPostId(Long postId) {

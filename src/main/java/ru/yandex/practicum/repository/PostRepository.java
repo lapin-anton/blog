@@ -2,6 +2,7 @@ package ru.yandex.practicum.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.model.Post;
@@ -17,18 +18,32 @@ public class PostRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Post> findAll(String search, int pageNumber, int pageSize) {
+        List<Post> result;
         var offset = pageSize * (pageNumber - 1);
-        var query = "".equals(search) ? "select id, title, image, text, tags, likes_count from post limit ? offset ?"
-                : "select id, title, image, text, tags, likes_count from post where tags like '%" + search + "%' limit ? offset ?";
-        return jdbcTemplate.query(query,
-                (rs, rowNum) -> new Post(
-                        rs.getLong("id"),
-                        rs.getString("title"),
-                        rs.getBytes("image"),
-                        rs.getString("text"),
-                        rs.getString("tags"),
-                        rs.getInt("likes_count")
-                ), pageSize, offset);
+        RowMapper<Post> postRowMapper = (rs, rwNum) -> new Post(
+                rs.getLong("id"),
+                rs.getString("title"),
+                rs.getBytes("image"),
+                rs.getString("text"),
+                rs.getString("tags"),
+                rs.getInt("likes_count"));
+        if ("".equals(search)) {
+            result = jdbcTemplate.query(
+                    "select id, title, image, text, tags, likes_count from post limit ? offset ?",
+                    postRowMapper,
+                    pageSize,
+                    offset
+            );
+        } else {
+            result = jdbcTemplate.query(
+                    "select id, title, image, text, tags, likes_count from post where tags like ? limit ? offset ?",
+                    postRowMapper,
+                    "%" + search + "%",
+                    pageSize,
+                    offset
+            );
+        }
+        return result;
     }
 
     public long savePost(String title, byte[] image, String tags, String text) {
@@ -73,8 +88,16 @@ public class PostRepository {
     }
 
     public int getPostCount(String search) {
-        var query = "".equals(search) ? "select count(1) as count from post" : "select count(1) as count from post where tags like '%" + search + "%'";
-        return jdbcTemplate.queryForObject(query, Integer.class);
+        int postCount;
+        if ("".equals(search)) {
+            postCount = jdbcTemplate.queryForObject("select count(1) as count from post", Integer.class);
+        } else {
+            postCount = jdbcTemplate.queryForObject("select count(1) as count from post where tags like ?",
+                    Integer.class,
+                    "%" + search + "%"
+            );
+        }
+        return postCount;
     }
 
     public void delete(Long postId) {
